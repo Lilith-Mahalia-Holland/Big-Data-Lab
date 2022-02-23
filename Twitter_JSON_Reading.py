@@ -2,18 +2,28 @@ import pandas as pd
 import numpy as np
 import os
 import sys
-from zipfile import ZipFile
 
 
-user_base_dir = "C:/Users/jdhjr"
-# Since this script modifies and creates files make sure you change the path's, otherwise the script will not work
-if not os.path.isdir(user_base_dir):
-    sys.exit()
+# Author: Lilith Holland
+# Make sure that box drive is installed and you have editor approval on the file.
+# Make sure that the variables below are all configured to your current machine.
 
 
+
+# ALL OF THIS NEEDS TO BE SETUP FOR YOUR CURRENT SYSTEM
 # Base path to the save and load locations, above any folders that are used
+# Since this script modifies and creates files make sure you change the path's, otherwise the script will not work
 load_base_path = "C:/Users/jdhjr/Box/COVID-19 Raw Twitter JSONs"
 save_base_path = "C:/Users/jdhjr/Box/COVID-19 Flattened Twitter CSVs"
+user_base_dir = "C:/Users/jdhjr"
+# The last folder will not be done due to how python works, if you want to do 12 folders put 0 and 12 in.
+folder_start = 0
+folder_end = 12
+all_folder = False
+
+
+if not os.path.isdir(user_base_dir):
+    sys.exit()
 
 
 # I search for all of the json data by walking the load_path location
@@ -246,10 +256,15 @@ retweet_user_data_columns = ["retweeted_status_user_id_str", "retweeted_status_u
 retweet_mentions_columns = ["retweeted_status_entities_user_mentions_screen_name", "retweeted_status_entities_user_mentions_id_str"]
 
 
+# Simple check to load all folders if required
+if all_folder:
+    folder_end = len(save_folder_path)
+
+
 # for i in range(0, len(load_file_path)-1):
 # Run through all of the possible folders
 #try:
-for i in range(0, len(save_folder_path)):
+for i in range(folder_start, folder_end):
     print("Starting folder %d\n" % (i + 1))
     # Run through all possible files in each folder
     for j in range(0, len(load_file_path[i])):
