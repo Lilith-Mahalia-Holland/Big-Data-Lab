@@ -2,6 +2,7 @@
 # Author: Lilith Holland
 # Make sure that box drive is installed and you have editor approval on the file.
 # Make sure that the variables below are all configured to your current machine.
+# This script will crash sometimes, I'm working on fixing this but it's a difficult problem.
 
 
 
@@ -276,36 +277,39 @@ for i in range(folder_start, folder_end):
         if not os.path.isfile(save_file_path[i][j] + ".zip"):
             # If the file does not exist make an empty data frame
             sdf = pd.DataFrame()
-            print("Starting file %d\n" % (j +1))
+            print(" Starting file %d\n" % (j +1))
             # Read through the JSON in chunks of 10,000
             # There is some kind of bug with converting the slices into a list
             # for df in reader: lines = list(islice(self.data, self.chunksize))
-            with pd.read_json(load_file_path[i][j], lines=True, chunksize=10000, orient="columns") as reader:
-                chunk = 1
-                # For each chunk run through this process
-                for df in reader:
-                    print("Starting chunk %d" % chunk)
-                    # Remove all initial unnecessary columns
-                    df = df[initial_columns]
-                    # Unnest the user column with the user dictionary
-                    df = df_unnest(df, user_dict, "user")
-                    df = df_unnest(df, retweet_dict, "retweeted_status")
-                    df = df_unnest(df, column="retweeted_status_user")
-                    df = df_unnest(df, column="retweeted_status_entities")
-                    df = df_unnest(df, retweet_user_entities_user_mentions_dict,
-                                   "retweeted_status_entities_user_mentions", empty_test=True)
-                    # Combine all of the column names that are kept
-                    df = df[initial_columns[:-2] + user_data_columns + retweet_data_columns[:-1] +
-                            retweet_user_data_columns + retweet_mentions_columns]
-                    # Concatinate each chunk into the sdf data frame
-                    sdf = pd.concat([sdf, df], ignore_index=True)
-                    print("Finished chunk %d\n" % chunk)
-                    chunk = chunk + 1
-            # create a zip file for each data frame, I would prefer to make them share but that has issues atm
-            compression_opts = dict(method="zip", archive_name=save_file_name[i][j] + ".csv")
-            # Save the csv into the zip file
-            sdf.to_csv(save_file_path[i][j] + ".zip", index=False, compression=compression_opts)
+            try:
+                with pd.read_json(load_file_path[i][j], lines=True, chunksize=10000, orient="columns", encoding="utf-8-sig") as reader:
+                    chunk = 1
+                    # For each chunk run through this process
+                    for df in reader:
+                        print("     Starting chunk %d" % chunk)
+                        # Remove all initial unnecessary columns
+                        df = df[initial_columns]
+                        # Unnest the user column with the user dictionary
+                        df = df_unnest(df, user_dict, "user")
+                        df = df_unnest(df, retweet_dict, "retweeted_status")
+                        df = df_unnest(df, column="retweeted_status_user")
+                        df = df_unnest(df, column="retweeted_status_entities")
+                        df = df_unnest(df, retweet_user_entities_user_mentions_dict,
+                                       "retweeted_status_entities_user_mentions", empty_test=True)
+                        # Combine all of the column names that are kept
+                        df = df[initial_columns[:-2] + user_data_columns + retweet_data_columns[:-1] +
+                                retweet_user_data_columns + retweet_mentions_columns]
+                        # Concatinate each chunk into the sdf data frame
+                        sdf = pd.concat([sdf, df], ignore_index=True)
+                        print("     Finished chunk %d\n" % chunk)
+                        chunk = chunk + 1
+                # create a zip file for each data frame, I would prefer to make them share but that has issues atm
+                compression_opts = dict(method="zip", archive_name=save_file_name[i][j] + ".csv")
+                # Save the csv into the zip file
+                sdf.to_csv(save_file_path[i][j] + ".zip", index=False, compression=compression_opts)
+                print(" Finished file %d\n" % (j + 1))
+            except:
+                print("     Error on current chunk")
         else:
-            print("File %d has already been done\n" % (j + 1))
-        print("Finished file %d\n" % (j + 1))
+            print(" File %d has already been done\n" % (j + 1))
     print("Finished folder %d\n" % (i + 1))
