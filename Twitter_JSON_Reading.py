@@ -22,9 +22,9 @@ load_base_path = "C:/Users/jdhjr/Box/COVID-19 Raw Twitter JSONs"
 save_base_path = "C:/Users/jdhjr/Box/COVID-19 Flattened Twitter CSVs"
 user_base_dir = "C:/Users/jdhjr"
 # The last folder will not be done due to how python works, if you want to do 12 folders put 0 and 12 in.
-folder_start = 0
-folder_end = 12
-all_folder = False
+folder_start = 12
+folder_end = 13
+all_folder = True
 
 
 if not os.path.isdir(user_base_dir):
@@ -77,7 +77,7 @@ del(i, j, inner_load_file_path, inner_save_file_name, inner_save_file_path, load
     load_folder_path, save_folder_name)
 
 
-# Thee dictionaries are used to fill in missing nested values, from my understanding this is an annoying caveat of
+# The dictionaries are used to fill in missing nested values, from my understanding this is an annoying caveat of
 # steaming the json file in rather than just load it as a whole.
 user_dict = {'id': None,
              'id_str': None,
@@ -264,29 +264,30 @@ retweet_mentions_columns = ["retweeted_status_entities_user_mentions_screen_name
 # Simple check to load all folders if required
 if all_folder:
     folder_end = len(save_folder_path)
+    folder_start = 0
 
 
 # for i in range(0, len(load_file_path)-1):
 # Run through all of the possible folders
 #try:
 for i in range(folder_start, folder_end):
-    print("Starting folder %d\n" % (i + 1))
+    print("Starting folder {:d}\n".format(i + 1))
     # Run through all possible files in each folder
     for j in range(0, len(load_file_path[i])):
         # If a file exists make sure to not re calculate the file
         if not os.path.isfile(save_file_path[i][j] + ".zip"):
             # If the file does not exist make an empty data frame
             sdf = pd.DataFrame()
-            print(" Starting file %d\n" % (j +1))
+            print("Starting folder {:d}, file {:d}\n".format((i + 1), (j + 1)))
             # Read through the JSON in chunks of 10,000
             # There is some kind of bug with converting the slices into a list
             # for df in reader: lines = list(islice(self.data, self.chunksize))
-            try:
-                with pd.read_json(load_file_path[i][j], lines=True, chunksize=10000, orient="columns", encoding="utf-8-sig") as reader:
-                    chunk = 1
-                    # For each chunk run through this process
+            with pd.read_json(load_file_path[i][j], lines=True, chunksize=10000, orient="columns", encoding="utf-8-sig") as reader:
+                chunk = 1
+                # For each chunk run through this process
+                try:
                     for df in reader:
-                        print("     Starting chunk %d" % chunk)
+                        print("Starting folder {:d}, file {:d}, chunk {:d}".format((i + 1), (j + 1), chunk))
                         # Remove all initial unnecessary columns
                         df = df[initial_columns]
                         # Unnest the user column with the user dictionary
@@ -301,15 +302,30 @@ for i in range(folder_start, folder_end):
                                 retweet_user_data_columns + retweet_mentions_columns]
                         # Concatinate each chunk into the sdf data frame
                         sdf = pd.concat([sdf, df], ignore_index=True)
-                        print("     Finished chunk %d\n" % chunk)
+                        print("Finished folder {:d}, file {:d}, chunk {:d}\n".format((i + 1), (j + 1), chunk))
                         chunk = chunk + 1
-                # create a zip file for each data frame, I would prefer to make them share but that has issues atm
-                compression_opts = dict(method="zip", archive_name=save_file_name[i][j] + ".csv")
-                # Save the csv into the zip file
-                sdf.to_csv(save_file_path[i][j] + ".zip", index=False, compression=compression_opts)
-                print(" Finished file %d\n" % (j + 1))
-            except:
-                print("     Error on current chunk")
+                except:
+                    print("Error in folder {:d}, file {:d}, chunk {:d}\n".format((i + 1), (j + 1), chunk))
+                    #try:
+                    #    for df in reader:
+                    #        print("test")
+                    #except:
+                    #    print("Error in folder {:d}, file {:d}, chunk {:d}\n".format((i + 1), (j + 1), chunk))
+                    #else:
+                    #    # create a zip file for each data frame, I would prefer to make them share but that has issues atm
+                    #    compression_opts = dict(method="zip", archive_name=save_file_name[i][j] + ".csv")
+                    #    # Save the csv into the zip file
+                    #    sdf.to_csv(save_file_path[i][j] + ".zip", index=False, compression=compression_opts)
+                    #    print("Finished folder {:d}, file {:d}\n".format((i + 1), (j + 1)))
+                else:
+                    # create a zip file for each data frame, I would prefer to make them share but that has issues atm
+                    compression_opts = dict(method="zip", archive_name=save_file_name[i][j] + ".csv")
+                    # Save the csv into the zip file
+                    sdf.to_csv(save_file_path[i][j] + ".zip", index=False, compression=compression_opts)
+                    print("Finished folder {:d}, file {:d}\n".format((i + 1), (j + 1)))
         else:
-            print(" File %d has already been done\n" % (j + 1))
-    print("Finished folder %d\n" % (i + 1))
+            print("Folder {:d}, file {:d} has already been done\n".format((i + 1), (j + 1)))
+    print("Finished folder {:d}\n".format(i + 1))
+
+
+# Expand the read out to be easier to glance at
