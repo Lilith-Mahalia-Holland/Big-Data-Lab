@@ -27,9 +27,9 @@ import timeit
 # ALL OF THIS NEEDS TO BE SETUP FOR YOUR CURRENT SYSTEM
 # Base path to the save and load locations, above any folders that are used
 # Since this script modifies and creates files make sure you change the path's, otherwise the script will not work
-load_base_path = "C:/Users/jdhjr/Box/COVID-19 Raw Twitter JSONs"
-save_base_path = "C:/Users/jdhjr/Box/COVID-19 Flattened Twitter CSVs"
-user_base_dir = "C:/Users/jdhjr"
+load_base_path = "file location"
+save_base_path = "target location"
+user_base_dir = "lowest comman path ie: C:/User/Name"
 # The last folder will not be done due to how python works, if you want to do 12 folders put 0 and 12 in.
 folder_start = 2
 folder_end = 3
